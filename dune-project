@@ -1,4 +1,4 @@
-(lang dune 3.11)
+(lang dune 3.12)
 
 (name error-log)
 
@@ -21,8 +21,6 @@
  (depends
   (ocaml
    (>= 5.1))
-  (dune
-   (>= 3.11))
   (base
    (and
     (>= v0.16)
@@ -55,4 +53,4 @@
     (>= v0.16)
     (< v0.17)))
   (stdune
-   (>= 3.11))))
+   (>= 3.12))))
