@@ -18,7 +18,6 @@
 (package
  (name error-log)
  (synopsis "Reporting located errors and warnings")
- (description "Reporting located errors and warnings")
  (depends
   (ocaml
    (>= 5.1))
