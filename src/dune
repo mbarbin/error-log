@@ -1,6 +1,8 @@
 (library
  (name error_log)
  (public_name error-log)
+ (instrumentation
+  (backend bisect_ppx))
  (wrapped false)
  (flags
   :standard
