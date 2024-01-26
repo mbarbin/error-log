@@ -1,6 +1,7 @@
 # error-log
 
 [![CI Status](https://github.com/mbarbin/error-log/workflows/ci/badge.svg)](https://github.com/mbarbin/error-log/actions/workflows/ci.yml)
+[![Coverage Status](https://coveralls.io/repos/github/mbarbin/error-log/badge.svg?branch=main&service=github)](https://coveralls.io/github/mbarbin/error-log?branch=main)
 
 `Error_log` is a library for programs that process user programs and report
 located errors and warnings (compilers, interpreters, etc.)
