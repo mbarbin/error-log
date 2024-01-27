@@ -12,5 +12,7 @@
   Expect_test_helpers_base)
  (libraries base error_log expect_test_helpers_core.expect_test_helpers_base)
  (inline_tests)
+ (instrumentation
+  (backend bisect_ppx))
  (preprocess
   (pps ppx_jane ppx_js_style -check-doc-comments)))
