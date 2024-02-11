@@ -38,9 +38,8 @@ val error : t -> ?loc:Loc.t -> ?hints:Style.t Pp.t list -> Style.t Pp.t list -> 
 (** Same as [error] but raises and stops the execution at this error. This is
     more convenient to use than [error] in code places where it's not easy to
     return anything meaningful in case of a fatal error. Under the hood this
-    will raise an exception that is caught by the enclosing [report_and_exit].
-    Such exceptions may be caught using [Error.try_with] but they are not
-    designed to be caught otherwise. *)
+    will raise the exception {!exception:E} that is caught by the enclosing
+    [report_and_exit]. *)
 val raise : t -> ?loc:Loc.t -> ?hints:Style.t Pp.t list -> Style.t Pp.t list -> 'a
 
 (** Print a message with the prefix: "Info:". This is only printed when in mode
@@ -103,20 +102,36 @@ module For_test : sig
   val report : ?config:Config.t -> (t -> unit Or_error.t) -> unit
 end
 
-module Error : sig
-  (** Sometimes you want to be able to catch fatal errors raised by some code,
-      so you may continue to run some logic afterwards. This is what this
-      module is about. The intended usage is to call [Error_log.protect] and
-      match on the result. *)
+(** {1 Recovering from errors} *)
+
+(** Sometimes you want to be able to catch fatal errors raised by some code, so
+    you may continue to run some logic afterwards. This is what this part of
+    the API is about.
+
+    An important note though, even if you catch an exception {!exception:E}, and
+    do not reraise it afterwards, the resulting exit code reported by
+    {!report_and_exit} will still be that of an error code.
+
+    This is only intended to be used in places where you want to run a bit of
+    extra logic after catching an error, but not to turn a fatal error into a
+    success. *)
+
+module Err : sig
+  (** The type of errors raised by {!raise}. *)
   type t
-
-  val raise : t -> _
-
-  (** To be used in place of [ignore] when pattern matching on [Error reported]. *)
-  val continue : t -> unit
 end
 
-(** This will only catch errors raised by [raise], but not protect from other
-    exceptions (if [f] raises any other exception, this function will raise
-    too). *)
-val try_with : t -> f:(unit -> 'a) -> ('a, Error.t) Result.t
+exception E of Err.t
+
+(** Reraise an error originally raised by {!raise}. This is useful when you want
+    to catch an error, run some extra logic, and then reraise the error when
+    you are done. *)
+val reraise : Err.t -> _
+
+(** [protect t ~f] returns [Ok (f ())] with its results, or [Error err] if [f]
+    raises {!exception:E}. This will only catch exceptions raised by {!raise}
+    during the execution of [f], but not protect from any other exceptions :
+    if [f] raises any other exception, this function will raise too. You may
+    call {!reraise} on the returned [Err.t] to propagate the error further if
+    you need to. *)
+val protect : t -> f:(unit -> 'a) -> ('a, Err.t) Result.t

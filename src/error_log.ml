@@ -130,15 +130,20 @@ type t =
   }
 [@@deriving sexp_of]
 
-exception Fatal_error
+module Err = struct
+  type t = T
+end
 
+exception E of Err.t
+
+let reraise e = raise (E e)
 let create ~config = { config; messages = Queue.create () }
 let did_you_mean = Stdune.User_message.did_you_mean
 
 let raise t ?loc ?hints paragraphs =
   let message = Stdune.User_error.make ?loc ?hints paragraphs in
   Queue.enqueue t.messages { kind = Error; message; flushed = false };
-  raise Fatal_error
+  reraise T
 ;;
 
 let error t ?loc ?hints paragraphs =
@@ -208,7 +213,7 @@ let report_and_return_status ?(config = Config.default) f () =
     match f t with
     | Ok () -> if has_errors t then `Fatal_error else `Ok
     | Error e -> `Error e
-    | exception Fatal_error -> `Fatal_error
+    | exception E T -> `Fatal_error
     | exception e ->
       let raw_backtrace = Stdlib.Printexc.get_raw_backtrace () in
       `Raised (e, raw_backtrace)
@@ -241,15 +246,8 @@ module For_test = struct
   ;;
 end
 
-module Error = struct
-  type t = T
-
-  let raise T = Base.raise Fatal_error
-  let continue T = ()
-end
-
-let try_with _ ~f =
+let protect _ ~f =
   match f () with
-  | exception Fatal_error -> Error Error.T
   | ok -> Ok ok
+  | exception E e -> Error e
 ;;
