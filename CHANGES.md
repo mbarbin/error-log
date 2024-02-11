@@ -1,3 +1,19 @@
+## 0.0.4 (unreleased)
+
+### Added
+
+### Changed
+
+- Improved and clarified api to recover from exceptions (breaking change).
+
+### Deprecated
+
+### Fixed
+
+### Removed
+
+- Replaced `Error_log.try_with` by `Error_log.protect` and `Error_log.E`.
+
 ## 0.0.3 (2024-02-09)
 
 ### Added
