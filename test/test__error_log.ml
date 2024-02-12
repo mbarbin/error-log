@@ -18,6 +18,37 @@ let%expect_test "return Error" =
   ()
 ;;
 
+let%expect_test "default mode" =
+  let config = Error_log.Config.create () in
+  Error_log.For_test.report ~config (fun error_log ->
+    print_s [%sexp (Error_log.mode error_log : Error_log.Config.Mode.t)];
+    [%expect {| Default |}];
+    print_s [%sexp (Error_log.is_debug_mode error_log : bool)];
+    [%expect {| false |}];
+    return ());
+  [%expect {||}];
+  ()
+;;
+
+let%expect_test "debug mode" =
+  let config = Error_log.Config.create ~mode:Debug () in
+  Error_log.For_test.report ~config (fun error_log ->
+    print_s [%sexp (Error_log.mode error_log : Error_log.Config.Mode.t)];
+    [%expect {| Debug |}];
+    print_s [%sexp (Error_log.is_debug_mode error_log : bool)];
+    [%expect {| true |}];
+    return ());
+  [%expect {||}];
+  ()
+;;
+
+let%expect_test "uncaught exception" =
+  require_does_raise [%here] (fun () ->
+    Error_log.For_test.report (fun (_ : Error_log.t) -> raise_s [%sexp Exception]));
+  [%expect {| Exception |}];
+  ()
+;;
+
 let path = Fpath.(v "my-file.ext")
 
 let%expect_test "raise" =
@@ -79,7 +110,8 @@ let%expect_test "error" =
 
 let%expect_test "warning" =
   let loc = Loc.in_file_at_line ~path ~line:3 in
-  Error_log.For_test.report (fun error_log ->
+  let config = Error_log.Config.create () in
+  Error_log.For_test.report ~config (fun error_log ->
     Error_log.warning
       error_log
       ~loc
@@ -113,6 +145,69 @@ let%expect_test "warn-error" =
   ()
 ;;
 
+let%expect_test "warning when quiet" =
+  let loc = Loc.in_file_at_line ~path ~line:3 in
+  let config = Error_log.Config.create ~mode:Quiet () in
+  Error_log.For_test.report ~config (fun error_log ->
+    Error_log.warning error_log ~loc [ Pp.textf "Hi" ];
+    return ());
+  [%expect {||}];
+  ()
+;;
+
+let%expect_test "warn-error when quiet" =
+  let loc = Loc.in_file_at_line ~path ~line:3 in
+  let config = Error_log.Config.create ~mode:Quiet ~warn_error:true () in
+  Error_log.For_test.report ~config (fun error_log ->
+    Error_log.warning error_log ~loc [ Pp.textf "Hi" ];
+    return ());
+  [%expect {|
+    File "my-file.ext", line 3, characters 0-0:
+    Warning: Hi
+    [1] |}];
+  ()
+;;
+
+let%expect_test "info & debug" =
+  let loc = Loc.in_file_at_line ~path ~line:3 in
+  let config = Error_log.Config.create () in
+  Error_log.For_test.report ~config (fun error_log ->
+    Error_log.info error_log ~loc [ Pp.textf "Hi" ];
+    Error_log.debug error_log ~loc [ Pp.textf "Debug!!" ];
+    return ());
+  [%expect {||}];
+  ()
+;;
+
+let%expect_test "info & debug when verbose" =
+  let loc = Loc.in_file_at_line ~path ~line:3 in
+  let config = Error_log.Config.create ~mode:Verbose () in
+  Error_log.For_test.report ~config (fun error_log ->
+    Error_log.info error_log ~loc [ Pp.textf "Hi" ];
+    Error_log.debug error_log ~loc [ Pp.textf "Debug!!" ];
+    return ());
+  [%expect {|
+    File "my-file.ext", line 3, characters 0-0:
+    Info: Hi |}];
+  ()
+;;
+
+let%expect_test "info & debug when debug" =
+  let loc = Loc.in_file_at_line ~path ~line:3 in
+  let config = Error_log.Config.create ~mode:Debug () in
+  Error_log.For_test.report ~config (fun error_log ->
+    Error_log.info error_log ~loc [ Pp.textf "Hi" ];
+    Error_log.debug error_log ~loc [ Pp.textf "Debug!!" ];
+    return ());
+  [%expect
+    {|
+    File "my-file.ext", line 3, characters 0-0:
+    Info: Hi
+    File "my-file.ext", line 3, characters 0-0:
+    Debug: Debug!! |}];
+  ()
+;;
+
 let%expect_test "protect" =
   let loc = Loc.in_file_at_line ~path ~line:3 in
   Error_log.For_test.report (fun error_log ->
@@ -122,7 +217,7 @@ let%expect_test "protect" =
          Error_log.error error_log ~loc [ Pp.textf "Error 2" ];
          Error_log.raise error_log ~loc [ Pp.textf "Error 3" ])
      with
-     | Ok () -> ()
+     | Ok () -> assert false
      | Error (_ : Error_log.Err.t) ->
        Error_log.error error_log ~loc [ Pp.textf "Error 4" ]);
     return ());
@@ -187,4 +282,72 @@ let%expect_test "recover and reraise" =
     Error: Fatal error
     [1] |}];
   ()
+;;
+
+let%expect_test "checkpoint" =
+  let loc = Loc.in_file_at_line ~path ~line:3 in
+  Error_log.For_test.report (fun error_log ->
+    let%bind () = Error_log.checkpoint error_log in
+    Error_log.error error_log ~loc [ Pp.text "Error 1" ];
+    let%bind () = Error_log.checkpoint error_log in
+    assert false);
+  [%expect
+    {|
+    File "my-file.ext", line 3, characters 0-0:
+    Error: Error 1
+    [1] |}];
+  ()
+;;
+
+let%expect_test "checkpoint_exn" =
+  let loc = Loc.in_file_at_line ~path ~line:3 in
+  let config = Error_log.Config.create ~warn_error:true () in
+  Error_log.For_test.report ~config (fun error_log ->
+    let%bind () = Error_log.checkpoint error_log in
+    Error_log.warning error_log ~loc [ Pp.text "Warning 1" ];
+    Error_log.checkpoint_exn error_log;
+    assert false);
+  [%expect
+    {|
+    File "my-file.ext", line 3, characters 0-0:
+    Warning: Warning 1
+    [1] |}];
+  ()
+;;
+
+let%expect_test "flush" =
+  let loc = Loc.in_file_at_line ~path ~line:3 in
+  Error_log.For_test.report (fun error_log ->
+    Error_log.error error_log ~loc [ Pp.text "Error 1" ];
+    [%expect {||}];
+    Error_log.error error_log ~loc [ Pp.text "Error 2" ];
+    [%expect {||}];
+    Error_log.flush error_log;
+    [%expect
+      {|
+      File "my-file.ext", line 3, characters 0-0:
+      Error: Error 1
+      File "my-file.ext", line 3, characters 0-0:
+      Error: Error 2 |}];
+    Error_log.error error_log ~loc [ Pp.text "Error 3" ];
+    [%expect {||}];
+    return ());
+  [%expect
+    {|
+    File "my-file.ext", line 3, characters 0-0:
+    Error: Error 3
+    [1] |}];
+  ()
+;;
+
+let%expect_test "config param" =
+  let configs =
+    let%map.List warn_error = [ false; true ]
+    and mode = Error_log.Config.Mode.all in
+    Error_log.Config.create ~mode ~warn_error ()
+  in
+  List.iter configs ~f:(fun t ->
+    let params = Error_log.Config.to_params t in
+    let t' = Command.Param.parse Error_log.Config.param params |> Or_error.ok_exn in
+    require_equal [%here] (module Error_log.Config) t t')
 ;;

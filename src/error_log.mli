@@ -22,7 +22,7 @@ module Style : sig
 end
 
 (** Print a message with the prefix: "Warning:". Warning may not be displayed
-    depending on the command param. By default, they are printed to stderr, and
+    depending on the command params. By default, they are printed to stderr, and
     do not affect the exit code of the application (it will be 0 if there are
     no other errors). *)
 val warning : t -> ?loc:Loc.t -> ?hints:Style.t Pp.t list -> Style.t Pp.t list -> unit
@@ -31,15 +31,15 @@ val warning : t -> ?loc:Loc.t -> ?hints:Style.t Pp.t list -> Style.t Pp.t list -
     the final exit code to be 1. Note that this function returns [unit], so you
     may report multiple errors instead of stopping at the first one. If you
     want to still break the flow of execution after reporting multiple errors,
-    see [checkpoint]. If you are looking for a function to raise and bail out,
-    see [raise]. *)
+    see {!val:checkpoint}. If you are looking for a function to raise and bail out,
+    see {!val:raise}. *)
 val error : t -> ?loc:Loc.t -> ?hints:Style.t Pp.t list -> Style.t Pp.t list -> unit
 
-(** Same as [error] but raises and stops the execution at this error. This is
-    more convenient to use than [error] in code places where it's not easy to
-    return anything meaningful in case of a fatal error. Under the hood this
-    will raise the exception {!exception:E} that is caught by the enclosing
-    [report_and_exit]. *)
+(** Same as {!val:error} but raises and stops the execution at this error. This
+    is more convenient to use than {!val:error} in code places where it's not easy
+    to return anything meaningful in case of a fatal error. Under the hood
+    this will raise the exception {!exception:E} that is caught by the
+    enclosing {!val:report_and_exit}. *)
 val raise : t -> ?loc:Loc.t -> ?hints:Style.t Pp.t list -> Style.t Pp.t list -> 'a
 
 (** Print a message with the prefix: "Info:". This is only printed when in mode
@@ -54,15 +54,20 @@ val debug : t -> ?loc:Loc.t -> ?hints:Style.t Pp.t list -> Style.t Pp.t list -> 
 val did_you_mean : string -> candidates:string list -> Style.t Pp.t list
 
 (** [checkpoint] will return [Error e] if the error log has seen errors
-    previously (warnings don't count). [e] only contains a simple statement, so
-    it is not meant to replace the contents of the log, but simply to be passed
-    forward to prevent other parts of the program from running.
+    previously (warnings don't count, unless in warn-error mode). [e] only
+    contains a simple statement, so it is not meant to replace the contents of
+    the log, but simply to be passed forward to prevent other parts of the
+    program from running.
 
     This is useful if you are trying not to stop at the first error encountered,
     but still want to stop the execution at a specific breakpoint after some
     numbers of errors. To be used in places where it is more wise to stop the
     flow at a given point rather than returning meaningless data. *)
 val checkpoint : t -> unit Or_error.t
+
+(** Same as {!val:checkpoint} but raises {!exception:E} if the error log has seen
+    errors or warn-errors previously. *)
+val checkpoint_exn : t -> unit
 
 (** [flush t] prints to stderr all the messages currently available. This is
     useful for commands that have multiple parts, such as the bopkit
@@ -81,11 +86,14 @@ module Config : sig
     [@@deriving compare, equal, enumerate, sexp_of]
   end
 
-  type t
+  type t [@@deriving equal, sexp_of]
 
   val default : t
   val param : t Command.Param.t
   val create : ?mode:Mode.t -> ?warn_error:bool -> unit -> t
+
+  (** Returns the arguments to supply to the command line to create [t]. *)
+  val to_params : t -> string list
 end
 
 val mode : t -> Config.Mode.t
@@ -97,8 +105,8 @@ val is_debug_mode : t -> bool
 val report_and_exit : config:Config.t -> (t -> unit Or_error.t) -> unit -> _
 
 module For_test : sig
-  (** Same as [report_and_exit], but won't exit, rather print the return code
-      [1] at the end in case of an error, like in cram tests. *)
+  (** Same as {!val:report_and_exit}, but won't exit, rather print the return
+      code [1] at the end in case of an error, like in cram tests. *)
   val report : ?config:Config.t -> (t -> unit Or_error.t) -> unit
 end
 
@@ -109,8 +117,8 @@ end
     the API is about.
 
     An important note though, even if you catch an exception {!exception:E}, and
-    do not reraise it afterwards, the resulting exit code reported by
-    {!report_and_exit} will still be that of an error code.
+    do not re-raise it afterwards, the resulting exit code reported by
+    {!val:report_and_exit} will still be that of an error code.
 
     This is only intended to be used in places where you want to run a bit of
     extra logic after catching an error, but not to turn a fatal error into a
@@ -123,7 +131,7 @@ end
 
 exception E of Err.t
 
-(** Reraise an error originally raised by {!raise}. This is useful when you want
+(** Re-raise an error originally raised by {!raise}. This is useful when you want
     to catch an error, run some extra logic, and then reraise the error when
     you are done. *)
 val reraise : Err.t -> _
@@ -132,6 +140,6 @@ val reraise : Err.t -> _
     raises {!exception:E}. This will only catch exceptions raised by {!raise}
     during the execution of [f], but not protect from any other exceptions :
     if [f] raises any other exception, this function will raise too. You may
-    call {!reraise} on the returned [Err.t] to propagate the error further if
-    you need to. *)
+    call {!val:reraise} on the returned [Err.t] to propagate the error further
+    if you need to. *)
 val protect : t -> f:(unit -> 'a) -> ('a, Err.t) Result.t

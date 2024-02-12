@@ -9,11 +9,19 @@ module Config = struct
       | Verbose
       | Debug
     [@@deriving compare, equal, enumerate, sexp_of]
+
+    let switch t = "--" ^ (Sexp.to_string (sexp_of_t t) |> String.uncapitalize)
+  end
+
+  module Warn_error = struct
+    type t = bool [@@deriving equal, sexp_of]
+
+    let switch = "--warn-error"
   end
 
   type t =
     { mode : Mode.t
-    ; warn_error : bool
+    ; warn_error : Warn_error.t
     }
   [@@deriving equal, sexp_of]
 
@@ -28,13 +36,17 @@ module Config = struct
     let%map_open mode =
       let verbose =
         if%map
-          flag "--verbose" ~aliases:[ "v"; "verbose" ] no_arg ~doc:" print more messages"
+          flag
+            (Mode.switch Verbose)
+            ~aliases:[ "v"; "verbose" ]
+            no_arg
+            ~doc:" print more messages"
         then Some Mode.Verbose
         else None
       and debug =
         if%map
           flag
-            "--debug"
+            (Mode.switch Debug)
             ~aliases:[ "d"; "debug" ]
             no_arg
             ~doc:" enable all messages including debug output"
@@ -43,7 +55,7 @@ module Config = struct
       and quiet =
         if%map
           flag
-            "--quiet"
+            (Mode.switch Quiet)
             ~aliases:[ "q"; "-quiet" ]
             no_arg
             ~doc:" suppress output except errors"
@@ -52,11 +64,20 @@ module Config = struct
       in
       choose_one [ debug; verbose; quiet ] ~if_nothing_chosen:(Default_to Mode.Default)
     and warn_error =
-      if%map flag "--warn-error" no_arg ~doc:" treat warnings as errors"
+      if%map flag Warn_error.switch no_arg ~doc:" treat warnings as errors"
       then true
       else false
     in
     { mode; warn_error }
+  ;;
+
+  let to_params { mode; warn_error } =
+    List.concat
+      [ (match mode with
+         | Default -> []
+         | (Quiet | Verbose | Debug) as mode -> [ Mode.switch mode ])
+      ; (if warn_error then [ Warn_error.switch ] else [])
+      ]
   ;;
 end
 
@@ -82,7 +103,7 @@ module Message = struct
       | Warning
       | Info
       | Debug
-    [@@deriving equal, equal, sexp_of]
+    [@@deriving equal, sexp_of]
 
     let is_printed t ~(config : Config.t) =
       match (t : t) with
@@ -204,6 +225,7 @@ let has_errors t =
 ;;
 
 let checkpoint (t : t) = if has_errors t then Error special_error else Ok ()
+let checkpoint_exn (t : t) = if has_errors t then reraise T
 let mode t = t.config.mode
 let is_debug_mode t = Config.Mode.equal (mode t) Debug
 
