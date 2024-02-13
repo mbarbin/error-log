@@ -42,7 +42,7 @@ let%expect_test "debug mode" =
   ()
 ;;
 
-let%expect_test "visualize config" =
+let%expect_test "dump config" =
   let config = Error_log.Config.create ~mode:Debug () in
   print_s [%sexp (config : Error_log.Config.t)];
   [%expect {|
@@ -366,12 +366,13 @@ let%expect_test "config param" =
     require_equal [%here] (module Error_log.Config) t t')
 ;;
 
-let%expect_test "visualizing the log" =
+let%expect_test "dump the log" =
   let loc = Loc.in_file_at_line ~path ~line:3 in
   Error_log.For_test.report (fun error_log ->
     Error_log.error error_log ~loc [ Pp.text "E" ];
     print_s [%sexp (error_log : Error_log.t)];
-    [%expect {|
+    [%expect
+      {|
       ((config (
          (mode       Default)
          (warn_error false)))
@@ -381,7 +382,8 @@ let%expect_test "visualizing the log" =
          (flushed false))))) |}];
     Error_log.warning error_log ~loc [ Pp.text "W" ];
     print_s [%sexp (error_log : Error_log.t)];
-    [%expect {|
+    [%expect
+      {|
       ((config (
          (mode       Default)
          (warn_error false)))
@@ -389,7 +391,8 @@ let%expect_test "visualizing the log" =
          ((kind Error)   (message <opaque>) (flushed false))
          ((kind Warning) (message <opaque>) (flushed false))))) |}];
     Error_log.flush error_log;
-    [%expect {|
+    [%expect
+      {|
       File "my-file.ext", line 3, characters 0-0:
       Error: E
       File "my-file.ext", line 3, characters 0-0:
@@ -397,7 +400,8 @@ let%expect_test "visualizing the log" =
     Error_log.info error_log ~loc [ Pp.text "I" ];
     Error_log.debug error_log ~loc [ Pp.text "D" ];
     print_s [%sexp (error_log : Error_log.t)];
-    [%expect {|
+    [%expect
+      {|
       ((config (
          (mode       Default)
          (warn_error false)))

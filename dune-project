@@ -33,6 +33,11 @@
    (and
     (>= v0.16)
     (< v0.17)))
+  (core_unix
+   (and
+    :with-test
+    (>= v0.16)
+    (< v0.17)))
   (expect_test_helpers_core
    (and
     :with-test

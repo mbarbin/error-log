@@ -110,6 +110,21 @@ module For_test : sig
   val report : ?config:Config.t -> (t -> unit Or_error.t) -> unit
 end
 
+module Message : sig
+  module Kind : sig
+    type t =
+      | Error
+      | Warning
+      | Info
+      | Debug
+    [@@deriving equal, enumerate, sexp_of]
+
+    (** Tell whether a message of this kind should be printed or silenced under
+        ths specified configuration. *)
+    val is_printed : t -> config:Config.t -> bool
+  end
+end
+
 (** {1 Recovering from errors} *)
 
 (** Sometimes you want to be able to catch fatal errors raised by some code, so

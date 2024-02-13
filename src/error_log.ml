@@ -103,7 +103,7 @@ module Message = struct
       | Warning
       | Info
       | Debug
-    [@@deriving equal, sexp_of]
+    [@@deriving equal, enumerate, sexp_of]
 
     let is_printed t ~(config : Config.t) =
       match (t : t) with
