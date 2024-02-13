@@ -10,14 +10,17 @@ let write_cmd =
      and message_kind =
        flag
          "--message-kind"
-         (required (Arg_type.enumerated_sexpable (module Error_log.Message.Kind)))
+         (optional_with_default
+            Error_log.Message.Kind.Error
+            (Arg_type.enumerated_sexpable (module Error_log.Message.Kind)))
          ~doc:"KIND message kind"
-     in
+     and raise = flag "--raise" no_arg ~doc:"raise an exception" in
      let loc =
        let p = { Lexing.pos_fname = file; pos_lnum = line; pos_cnum; pos_bol } in
        Loc.create (p, { p with pos_cnum = pos_cnum + length })
      in
      Error_log.report_and_exit ~config (fun error_log ->
+       if raise then failwith "Raising an exception!";
        (match message_kind with
         | Error -> Error_log.error error_log ~loc [ Pp.text "error message" ]
         | Warning -> Error_log.warning error_log ~loc [ Pp.text "warning message" ]
@@ -30,4 +33,16 @@ let main =
   Command.group ~summary:"test error-log from the command line" [ "write", write_cmd ]
 ;;
 
-let () = Command_unix.run main
+let () =
+  (* Non terminating expressions currently have to disable coverage, otherwise a
+     non visitable coverage point is inserted. This issue has been reported
+     upstream.
+
+     {[
+       let () = __bisect_post_visit__ 1 (Command_unix.run main)
+     ]}
+
+     https://github.com/mbarbin/error-log/issues/2
+  *)
+  (Command_unix.run main [@coverage off])
+;;

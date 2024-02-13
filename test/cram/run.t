@@ -57,3 +57,11 @@ Exercising the error handling from the command line.
   1 | Hello World
             ^^^^^
   Debug: debug message
+
+  $ ./main.exe write --file file --line 1 --pos-bol 0 \
+  > --pos-cnum 0 --length 5 \
+  > --raise 2>&1 | head -n 4
+  Uncaught exception:
+    
+    (Failure "Raising an exception!")
+  
