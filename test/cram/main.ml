@@ -13,7 +13,6 @@ let write_cmd =
          (required (Arg_type.enumerated_sexpable (module Error_log.Message.Kind)))
          ~doc:"KIND message kind"
      in
-     let open Or_error.Let_syntax in
      let loc =
        let p = { Lexing.pos_fname = file; pos_lnum = line; pos_cnum; pos_bol } in
        Loc.create (p, { p with pos_cnum = pos_cnum + length })

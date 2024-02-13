@@ -120,7 +120,7 @@ module Message : sig
     [@@deriving equal, enumerate, sexp_of]
 
     (** Tell whether a message of this kind should be printed or silenced under
-        ths specified configuration. *)
+        the specified configuration. *)
     val is_printed : t -> config:Config.t -> bool
   end
 end
