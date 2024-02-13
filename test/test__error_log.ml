@@ -42,6 +42,15 @@ let%expect_test "debug mode" =
   ()
 ;;
 
+let%expect_test "visualize config" =
+  let config = Error_log.Config.create ~mode:Debug () in
+  print_s [%sexp (config : Error_log.Config.t)];
+  [%expect {|
+    ((mode       Debug)
+     (warn_error false)) |}];
+  ()
+;;
+
 let%expect_test "uncaught exception" =
   require_does_raise [%here] (fun () ->
     Error_log.For_test.report (fun (_ : Error_log.t) -> raise_s [%sexp Exception]));
@@ -211,6 +220,9 @@ let%expect_test "info & debug when debug" =
 let%expect_test "protect" =
   let loc = Loc.in_file_at_line ~path ~line:3 in
   Error_log.For_test.report (fun error_log ->
+    (match Error_log.protect error_log ~f:(fun () -> ()) with
+     | Ok () -> ()
+     | Error (_ : Error_log.Err.t) -> assert false);
     Error_log.error error_log ~loc [ Pp.textf "Error 1" ];
     (match
        Error_log.protect error_log ~f:(fun () ->
@@ -289,8 +301,10 @@ let%expect_test "checkpoint" =
   Error_log.For_test.report (fun error_log ->
     let%bind () = Error_log.checkpoint error_log in
     Error_log.error error_log ~loc [ Pp.text "Error 1" ];
-    let%bind () = Error_log.checkpoint error_log in
-    assert false);
+    [%expect {||}];
+    match Error_log.checkpoint error_log with
+    | Ok () -> assert false
+    | Error _ as err -> err);
   [%expect
     {|
     File "my-file.ext", line 3, characters 0-0:
@@ -303,10 +317,10 @@ let%expect_test "checkpoint_exn" =
   let loc = Loc.in_file_at_line ~path ~line:3 in
   let config = Error_log.Config.create ~warn_error:true () in
   Error_log.For_test.report ~config (fun error_log ->
-    let%bind () = Error_log.checkpoint error_log in
-    Error_log.warning error_log ~loc [ Pp.text "Warning 1" ];
     Error_log.checkpoint_exn error_log;
-    assert false);
+    Error_log.warning error_log ~loc [ Pp.text "Warning 1" ];
+    match Error_log.checkpoint_exn error_log with
+    | () -> assert false);
   [%expect
     {|
     File "my-file.ext", line 3, characters 0-0:
@@ -350,4 +364,49 @@ let%expect_test "config param" =
     let params = Error_log.Config.to_params t in
     let t' = Command.Param.parse Error_log.Config.param params |> Or_error.ok_exn in
     require_equal [%here] (module Error_log.Config) t t')
+;;
+
+let%expect_test "visualizing the log" =
+  let loc = Loc.in_file_at_line ~path ~line:3 in
+  Error_log.For_test.report (fun error_log ->
+    Error_log.error error_log ~loc [ Pp.text "E" ];
+    print_s [%sexp (error_log : Error_log.t)];
+    [%expect {|
+      ((config (
+         (mode       Default)
+         (warn_error false)))
+       (messages ((
+         (kind    Error)
+         (message <opaque>)
+         (flushed false))))) |}];
+    Error_log.warning error_log ~loc [ Pp.text "W" ];
+    print_s [%sexp (error_log : Error_log.t)];
+    [%expect {|
+      ((config (
+         (mode       Default)
+         (warn_error false)))
+       (messages (
+         ((kind Error)   (message <opaque>) (flushed false))
+         ((kind Warning) (message <opaque>) (flushed false))))) |}];
+    Error_log.flush error_log;
+    [%expect {|
+      File "my-file.ext", line 3, characters 0-0:
+      Error: E
+      File "my-file.ext", line 3, characters 0-0:
+      Warning: W |}];
+    Error_log.info error_log ~loc [ Pp.text "I" ];
+    Error_log.debug error_log ~loc [ Pp.text "D" ];
+    print_s [%sexp (error_log : Error_log.t)];
+    [%expect {|
+      ((config (
+         (mode       Default)
+         (warn_error false)))
+       (messages (
+         ((kind Error)   (message <opaque>) (flushed true))
+         ((kind Warning) (message <opaque>) (flushed true))
+         ((kind Info)    (message <opaque>) (flushed false))
+         ((kind Debug)   (message <opaque>) (flushed false))))) |}];
+    return ());
+  [%expect {| [1] |}];
+  ()
 ;;
