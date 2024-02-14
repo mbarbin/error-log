@@ -1,14 +1,12 @@
-## 0.0.4 (unreleased)
+## 0.0.4 (2024-02-14)
 
 ### Added
+
+- New tests to increase code coverage. Document workarounds currently employed to reach 100% coverage.
 
 ### Changed
 
 - Improved and clarified api to recover from exceptions (breaking change).
-
-### Deprecated
-
-### Fixed
 
 ### Removed
 
