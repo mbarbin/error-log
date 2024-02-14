@@ -8,7 +8,7 @@ homepage: "https://github.com/mbarbin/error-log"
 doc: "https://mbarbin.github.io/error-log/"
 bug-reports: "https://github.com/mbarbin/error-log/issues"
 depends: [
-  "dune" {>= "3.13"}
+  "dune" {>= "3.14"}
   "ocaml" {>= "5.1"}
   "base" {>= "v0.16" & < "v0.17"}
   "bisect_ppx" {dev & >= "2.8.3"}
@@ -21,7 +21,7 @@ depends: [
   "ppx_jane" {>= "v0.16" & < "v0.17"}
   "ppx_js_style" {>= "v0.16" & < "v0.17"}
   "stdio" {>= "v0.16" & < "v0.17"}
-  "stdune" {>= "3.13"}
+  "stdune" {>= "3.14"}
   "odoc" {with-doc}
 ]
 build: [
