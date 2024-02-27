@@ -170,7 +170,8 @@ module Message = struct
         Option.iter t.message.loc ~f:(fun loc ->
           (if use_test_printer then test_printer else Stdune.Ansi_color.prerr)
             (Stdune.Loc.pp loc
-             |> Pp.map_tags ~f:(fun Loc -> Stdune.User_message.Print_config.default Loc)));
+             |> Pp.map_tags ~f:(fun (Loc : Stdune.Loc.tag) ->
+               Stdune.User_message.Print_config.default Loc)));
         let message = { t.message with loc = None } in
         if use_test_printer
         then test_printer (Stdune.User_message.pp message)
