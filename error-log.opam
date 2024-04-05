@@ -8,7 +8,7 @@ homepage: "https://github.com/mbarbin/error-log"
 doc: "https://mbarbin.github.io/error-log/"
 bug-reports: "https://github.com/mbarbin/error-log/issues"
 depends: [
-  "dune" {>= "3.14"}
+  "dune" {>= "3.15"}
   "ocaml" {>= "5.1"}
   "base" {>= "v0.16" & < "v0.17"}
   "bisect_ppx" {dev & >= "2.8.3"}
@@ -28,7 +28,7 @@ depends: [
   "ppx_sexp_conv" {>= "v0.16" & < "v0.17"}
   "ppx_sexp_value" {>= "v0.16" & < "v0.17"}
   "stdio" {>= "v0.16" & < "v0.17"}
-  "stdune" {>= "3.14"}
+  "stdune" {>= "3.15"}
   "odoc" {with-doc}
 ]
 build: [
