@@ -303,6 +303,8 @@ module For_test = struct
   ;;
 end
 
+let am_running_test () = !force_am_running_test
+
 let protect _ ~f =
   match f () with
   | ok -> Ok ok

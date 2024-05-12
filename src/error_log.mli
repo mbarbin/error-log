@@ -110,6 +110,9 @@ module For_test : sig
   val report : ?config:Config.t -> (t -> unit Or_error.t) -> unit
 end
 
+(** Returns [true] if we are inside a call to [For_test.report]. *)
+val am_running_test : unit -> bool
+
 module Message : sig
   module Kind : sig
     type t =

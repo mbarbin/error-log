@@ -1,3 +1,17 @@
+## 0.0.7 (unreleased)
+
+### Added
+
+- Added `Error_log.am_running_test` to know when we're running `Error_log.For_test.report`.
+
+### Changed
+
+### Deprecated
+
+### Fixed
+
+### Removed
+
 ## 0.0.6 (2024-03-13)
 
 ### Changed
