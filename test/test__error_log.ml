@@ -414,3 +414,18 @@ let%expect_test "dump the log" =
   [%expect {| [1] |}];
   ()
 ;;
+
+let%expect_test "am_running_test" =
+  let am_running_test () =
+    print_s [%sexp { am_running_test = (Error_log.am_running_test () : bool) }]
+  in
+  am_running_test ();
+  [%expect {| ((am_running_test false)) |}];
+  Error_log.For_test.report (fun (_ : Error_log.t) ->
+    am_running_test ();
+    [%expect {| ((am_running_test true)) |}];
+    return ());
+  am_running_test ();
+  [%expect {| ((am_running_test false)) |}];
+  ()
+;;
