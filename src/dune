@@ -19,8 +19,7 @@
  (libraries base core.command loc pp pp-extended stdio stdune)
  (preprocess
   (pps
-   ;; First I am checking that the new construct is enough to resolve the coverage issue.
-   ;;   -unused-type-warnings=true
+   -unused-type-warnings=true
    ppx_compare
    ppx_enumerate
    ppx_hash
