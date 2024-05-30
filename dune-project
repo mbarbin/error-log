@@ -49,6 +49,8 @@
    (>= 1.2.0))
   (pp-extended
    (>= 0.0.2))
+  (ppxlib
+   (>= 0.32.2-preview.1))
   (ppx_compare
    (and
     (>= v0.17)
