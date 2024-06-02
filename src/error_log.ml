@@ -1,48 +1,20 @@
 open! Or_error.Let_syntax
 module Style = Stdune.User_message.Style
 
-(* We do [@@@coverage off] of ppx deriving constructs due to a generated
-   non visitable coverage point:
-
-   {[
-     let _ =
-       fun (_ : t) ->
-       ___bisect_visit___ 0;
-       ()
-     ;;
-   ]}
-
-   This is a known issue with work in progress to fix.
-
-   https://github.com/mbarbin/error-log/issues/1
-*)
-
 module Config = struct
   module Mode = struct
-    module T0 = struct
-      [@@@coverage off]
-
-      type t =
-        | Quiet
-        | Default
-        | Verbose
-        | Debug
-      [@@deriving compare, equal, enumerate, sexp_of]
-    end
-
-    include T0
+    type t =
+      | Quiet
+      | Default
+      | Verbose
+      | Debug
+    [@@deriving compare, equal, enumerate, sexp_of]
 
     let switch t = "--" ^ (Sexp.to_string (sexp_of_t t) |> String.uncapitalize)
   end
 
   module Warn_error = struct
-    module T0 = struct
-      [@@@coverage off]
-
-      type t = bool [@@deriving equal, sexp_of]
-    end
-
-    include T0
+    type t = bool [@@deriving equal, sexp_of]
 
     let switch = "--warn-error"
   end
@@ -126,18 +98,12 @@ let force_am_running_test = ref false
 
 module Message = struct
   module Kind = struct
-    module T0 = struct
-      [@@@coverage off]
-
-      type t =
-        | Error
-        | Warning
-        | Info
-        | Debug
-      [@@deriving equal, enumerate, sexp_of]
-    end
-
-    include T0
+    type t =
+      | Error
+      | Warning
+      | Info
+      | Debug
+    [@@deriving equal, enumerate, sexp_of]
 
     let is_printed t ~(config : Config.t) =
       match (t : t) with

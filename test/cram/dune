@@ -15,6 +15,7 @@
   (backend bisect_ppx))
  (preprocess
   (pps
+   -unused-type-warnings=true
    ppx_compare
    ppx_enumerate
    ppx_hash
