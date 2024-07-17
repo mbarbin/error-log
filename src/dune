@@ -19,6 +19,7 @@
  (libraries base core.command loc pp pp-extended stdio stdune)
  (preprocess
   (pps
+   -unused-code-warnings=force
    ppx_compare
    ppx_enumerate
    ppx_hash
