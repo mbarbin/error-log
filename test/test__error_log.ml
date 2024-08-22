@@ -1,5 +1,11 @@
 open! Or_error.Let_syntax
 
+let%expect_test "return" =
+  Error_log.For_test.report' (fun error_log -> ignore (error_log : Error_log.t));
+  [%expect {||}];
+  ()
+;;
+
 let%expect_test "return Ok" =
   Error_log.For_test.report (fun error_log ->
     ignore (error_log : Error_log.t);
@@ -361,8 +367,8 @@ let%expect_test "config param" =
     Error_log.Config.create ~mode ~warn_error ()
   in
   List.iter configs ~f:(fun t ->
-    let params = Error_log.Config.to_params t in
-    let t' = Command.Param.parse Error_log.Config.param params |> Or_error.ok_exn in
+    let args = Error_log.Config.to_args t in
+    let t' = Command.Param.parse Error_log.Config.param args |> Or_error.ok_exn in
     require_equal [%here] (module Error_log.Config) t t')
 ;;
 

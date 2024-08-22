@@ -89,11 +89,16 @@ module Config : sig
   type t [@@deriving equal, sexp_of]
 
   val default : t
-  val param : t Command.Param.t
+  val arg : t Commandlang.Command.Arg.t
   val create : ?mode:Mode.t -> ?warn_error:bool -> unit -> t
 
   (** Returns the arguments to supply to the command line to create [t]. *)
-  val to_params : t -> string list
+  val to_args : t -> string list
+
+  (** [param] is kept for compatibility with older projects during a transition
+      period, however please note it will be removed in a future version of
+      [Error_log], in favor or [arg] only (commandlang). *)
+  val param : t Command.Param.t
 end
 
 val mode : t -> Config.Mode.t
@@ -102,12 +107,18 @@ val is_debug_mode : t -> bool
 (** Wrap the execution of a program and introduce an error log to the scope.
     This is meant to be used inside the body of a core command. This will take
     care of printing the error log to stderr and handle the command exit code. *)
-val report_and_exit : config:Config.t -> (t -> unit Or_error.t) -> unit -> _
+val report_and_exit : config:Config.t -> (t -> unit Or_error.t) -> unit
+
+(** Same but not using the Or_error monad. Currently experimenting. *)
+val report_and_exit' : config:Config.t -> (t -> unit) -> unit
 
 module For_test : sig
   (** Same as {!val:report_and_exit}, but won't exit, rather print the return
       code [1] at the end in case of an error, like in cram tests. *)
   val report : ?config:Config.t -> (t -> unit Or_error.t) -> unit
+
+  (** Same but not using the [Or_error] monad. *)
+  val report' : ?config:Config.t -> (t -> unit) -> unit
 end
 
 (** Returns [true] if we are inside a call to [For_test.report]. *)
@@ -121,6 +132,8 @@ module Message : sig
       | Info
       | Debug
     [@@deriving equal, enumerate, sexp_of]
+
+    val to_string : t -> string
 
     (** Tell whether a message of this kind should be printed or silenced under
         the specified configuration. *)

@@ -6,7 +6,7 @@ Exercising the error handling from the command line.
 
   $ ./main.exe write --file file --line 1 --pos-bol 0 \
   > --pos-cnum 0 --length 5 \
-  > --message-kind Error
+  > --message-kind=error
   File "file", line 1, characters 0-5:
   1 | Hello World
       ^^^^^
@@ -15,7 +15,7 @@ Exercising the error handling from the command line.
 
   $ ./main.exe write --file file --line 1 --pos-bol 0 \
   > --pos-cnum 6 --length 5 \
-  > --message-kind Warning
+  > --message-kind=warning
   File "file", line 1, characters 6-11:
   1 | Hello World
             ^^^^^
@@ -23,7 +23,7 @@ Exercising the error handling from the command line.
 
   $ ./main.exe write --file file --line 1 --pos-bol 0 \
   > --pos-cnum 6 --length 5 \
-  > --message-kind Warning \
+  > --message-kind=warning \
   > --warn-error
   File "file", line 1, characters 6-11:
   1 | Hello World
@@ -33,11 +33,11 @@ Exercising the error handling from the command line.
 
   $ ./main.exe write --file file --line 1 --pos-bol 0 \
   > --pos-cnum 6 --length 5 \
-  > --message-kind Info
+  > --message-kind=info
 
   $ ./main.exe write --file file --line 1 --pos-bol 0 \
   > --pos-cnum 6 --length 5 \
-  > --message-kind Info \
+  > --message-kind=info \
   > --verbose
   File "file", line 1, characters 6-11:
   1 | Hello World
@@ -46,12 +46,12 @@ Exercising the error handling from the command line.
 
   $ ./main.exe write --file file --line 1 --pos-bol 0 \
   > --pos-cnum 6 --length 5 \
-  > --message-kind Debug \
+  > --message-kind=debug \
   > --verbose
 
   $ ./main.exe write --file file --line 1 --pos-bol 0 \
   > --pos-cnum 6 --length 5 \
-  > --message-kind Debug \
+  > --message-kind=debug \
   > --debug
   File "file", line 1, characters 6-11:
   1 | Hello World
@@ -60,8 +60,5 @@ Exercising the error handling from the command line.
 
   $ ./main.exe write --file file --line 1 --pos-bol 0 \
   > --pos-cnum 0 --length 5 \
-  > --raise 2>&1 | head -n 4
-  Uncaught exception:
-    
-    (Failure "Raising an exception!")
-  
+  > --raise 2>&1 | head -n 1
+  Internal Error: Failure("Raising an exception!")

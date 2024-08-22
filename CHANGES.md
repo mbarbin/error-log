@@ -1,3 +1,13 @@
+## 0.0.8 (2024-08-22)
+
+### Added
+
+- Added compatibility with `commandlang` & direct style error handling.
+
+### Changed
+
+- Configure tests into a separate package.
+
 ## 0.0.7 (2024-07-26)
 
 ### Added
