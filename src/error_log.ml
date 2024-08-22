@@ -10,13 +10,13 @@ module Config = struct
       | Debug
     [@@deriving compare, equal, enumerate, sexp_of]
 
-    let switch t = "--" ^ (Sexp.to_string (sexp_of_t t) |> String.uncapitalize)
+    let switch t = Sexp.to_string (sexp_of_t t) |> String.uncapitalize
   end
 
   module Warn_error = struct
     type t = bool [@@deriving equal, sexp_of]
 
-    let switch = "--warn-error"
+    let switch = "warn-error"
   end
 
   type t =
@@ -37,46 +37,78 @@ module Config = struct
       let verbose =
         if%map
           flag
-            (Mode.switch Verbose)
+            ("--" ^ Mode.switch Verbose)
             ~aliases:[ "v"; "verbose" ]
             no_arg
-            ~doc:" print more messages"
+            ~doc:"print more messages"
         then Some Mode.Verbose
         else None
       and debug =
         if%map
           flag
-            (Mode.switch Debug)
+            ("--" ^ Mode.switch Debug)
             ~aliases:[ "d"; "debug" ]
             no_arg
-            ~doc:" enable all messages including debug output"
+            ~doc:"enable all messages including debug output"
         then Some Mode.Debug
         else None
       and quiet =
         if%map
           flag
-            (Mode.switch Quiet)
+            ("--" ^ Mode.switch Quiet)
             ~aliases:[ "q"; "-quiet" ]
             no_arg
-            ~doc:" suppress output except errors"
+            ~doc:"suppress output except errors"
         then Some Mode.Quiet
         else None
       in
       choose_one [ debug; verbose; quiet ] ~if_nothing_chosen:(Default_to Mode.Default)
     and warn_error =
-      if%map flag Warn_error.switch no_arg ~doc:" treat warnings as errors"
+      if%map flag ("--" ^ Warn_error.switch) no_arg ~doc:"treat warnings as errors"
       then true
       else false
     in
     { mode; warn_error }
   ;;
 
-  let to_params { mode; warn_error } =
+  let arg =
+    let module Command = Commandlang.Command in
+    let%map_open.Command mode =
+      let%map.Command verbose =
+        if%map.Command Arg.flag [ Mode.switch Verbose; "v" ] ~doc:"print more messages"
+        then Some Mode.Verbose
+        else None
+      and debug =
+        if%map.Command
+          Arg.flag
+            [ Mode.switch Debug; "d" ]
+            ~doc:"enable all messages including debug output"
+        then Some Mode.Debug
+        else None
+      and quiet =
+        if%map.Command
+          Arg.flag [ Mode.switch Quiet; "q" ] ~doc:"suppress output except errors"
+        then Some Mode.Quiet
+        else None
+      in
+      [ debug; verbose; quiet ]
+      |> List.filter_opt
+      |> List.max_elt ~compare:Mode.compare
+      |> Option.value ~default:Mode.Default
+    and warn_error =
+      if%map.Command Arg.flag [ Warn_error.switch ] ~doc:"treat warnings as errors"
+      then true
+      else false
+    in
+    { mode; warn_error }
+  ;;
+
+  let to_args { mode; warn_error } =
     List.concat
       [ (match mode with
          | Default -> []
-         | (Quiet | Verbose | Debug) as mode -> [ Mode.switch mode ])
-      ; (if warn_error then [ Warn_error.switch ] else [])
+         | (Quiet | Verbose | Debug) as mode -> [ "--" ^ Mode.switch mode ])
+      ; (if warn_error then [ "--" ^ Warn_error.switch ] else [])
       ]
   ;;
 end
@@ -104,6 +136,12 @@ module Message = struct
       | Info
       | Debug
     [@@deriving equal, enumerate, sexp_of]
+
+    let to_string t =
+      match sexp_of_t t with
+      | Atom atom -> atom |> String.uncapitalize
+      | List _ -> assert false
+    ;;
 
     let is_printed t ~(config : Config.t) =
       match (t : t) with
@@ -230,7 +268,7 @@ let checkpoint_exn (t : t) = if has_errors t then reraise T
 let mode t = t.config.mode
 let is_debug_mode t = Config.Mode.equal (mode t) Debug
 
-let report_and_return_status ?(config = Config.default) f () =
+let report_and_return_status ?(config = Config.default) f =
   let t = create ~config in
   let status =
     match f t with
@@ -250,22 +288,40 @@ let report_and_return_status ?(config = Config.default) f () =
     `Error
 ;;
 
-let report_and_exit ~config f () =
-  match report_and_return_status ~config f () with
-  | `Ok -> Stdlib.exit 0
+let report_and_exit ~config f =
+  match report_and_return_status ~config f with
+  | `Ok ->
+    (* We allow the function to terminate normally when [code=0]. This is
+       because [bisect_ppx] instruments the out-edge of calls to [run] in
+       executables. If we never return, it would create false negatives in test
+       coverage. We may revisit this decision in the future if the context
+       changes. *)
+    ()
   | `Error -> Stdlib.exit 1
   | `Raised (e, raw_backtrace) -> Stdlib.Printexc.raise_with_backtrace e raw_backtrace
+;;
+
+let report_and_exit' ~config f =
+  report_and_exit ~config (fun t ->
+    f t;
+    Ok ())
 ;;
 
 module For_test = struct
   let report ?config f =
     match
       Ref.set_temporarily force_am_running_test true ~f:(fun () ->
-        report_and_return_status ?config f ())
+        report_and_return_status ?config f)
     with
     | `Ok -> ()
     | `Error -> prerr_endline "[1]"
     | `Raised (e, raw_backtrace) -> Stdlib.Printexc.raise_with_backtrace e raw_backtrace
+  ;;
+
+  let report' ?config f =
+    report ?config (fun t ->
+      f t;
+      Ok ())
   ;;
 end
 
