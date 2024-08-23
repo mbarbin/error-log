@@ -1,4 +1,3 @@
-open! Or_error.Let_syntax
 module Style = Stdune.User_message.Style
 
 module Config = struct
@@ -31,48 +30,7 @@ module Config = struct
     { mode; warn_error }
   ;;
 
-  let param =
-    let open Command.Let_syntax in
-    let%map_open mode =
-      let verbose =
-        if%map
-          flag
-            ("--" ^ Mode.switch Verbose)
-            ~aliases:[ "v"; "verbose" ]
-            no_arg
-            ~doc:"print more messages"
-        then Some Mode.Verbose
-        else None
-      and debug =
-        if%map
-          flag
-            ("--" ^ Mode.switch Debug)
-            ~aliases:[ "d"; "debug" ]
-            no_arg
-            ~doc:"enable all messages including debug output"
-        then Some Mode.Debug
-        else None
-      and quiet =
-        if%map
-          flag
-            ("--" ^ Mode.switch Quiet)
-            ~aliases:[ "q"; "-quiet" ]
-            no_arg
-            ~doc:"suppress output except errors"
-        then Some Mode.Quiet
-        else None
-      in
-      choose_one [ debug; verbose; quiet ] ~if_nothing_chosen:(Default_to Mode.Default)
-    and warn_error =
-      if%map flag ("--" ^ Warn_error.switch) no_arg ~doc:"treat warnings as errors"
-      then true
-      else false
-    in
-    { mode; warn_error }
-  ;;
-
   let arg =
-    let module Command = Commandlang.Command in
     let%map_open.Command mode =
       let%map.Command verbose =
         if%map.Command Arg.flag [ Mode.switch Verbose; "v" ] ~doc:"print more messages"
@@ -213,12 +171,13 @@ let error t ?loc ?hints paragraphs =
 
 let warning t ?loc ?hints paragraphs =
   let message =
-    let open Stdune in
-    User_message.make
+    Stdune.User_message.make
       ?loc
       ?hints
       ~prefix:
-        (Pp.seq (Pp.tag User_message.Style.Warning (Pp.verbatim "Warning")) (Pp.char ':'))
+        (Pp.seq
+           (Pp.tag Stdune.User_message.Style.Warning (Pp.verbatim "Warning"))
+           (Pp.char ':'))
       paragraphs
   in
   Queue.enqueue t.messages { kind = Warning; message; flushed = false }
@@ -226,11 +185,11 @@ let warning t ?loc ?hints paragraphs =
 
 let info t ?loc ?hints paragraphs =
   let message =
-    let open Stdune in
-    User_message.make
+    Stdune.User_message.make
       ?loc
       ?hints
-      ~prefix:(Pp.seq (Pp.tag User_message.Style.Kwd (Pp.verbatim "Info")) (Pp.char ':'))
+      ~prefix:
+        (Pp.seq (Pp.tag Stdune.User_message.Style.Kwd (Pp.verbatim "Info")) (Pp.char ':'))
       paragraphs
   in
   Queue.enqueue t.messages { kind = Info; message; flushed = false }
@@ -238,12 +197,13 @@ let info t ?loc ?hints paragraphs =
 
 let debug t ?loc ?hints paragraphs =
   let message =
-    let open Stdune in
-    User_message.make
+    Stdune.User_message.make
       ?loc
       ?hints
       ~prefix:
-        (Pp.seq (Pp.tag User_message.Style.Debug (Pp.verbatim "Debug")) (Pp.char ':'))
+        (Pp.seq
+           (Pp.tag Stdune.User_message.Style.Debug (Pp.verbatim "Debug"))
+           (Pp.char ':'))
       paragraphs
   in
   Queue.enqueue t.messages { kind = Debug; message; flushed = false }
@@ -284,7 +244,7 @@ let report_and_return_status ?(config = Config.default) f =
   | (`Ok | `Raised _) as status -> status
   | `Fatal_error -> `Error
   | `Error e ->
-    if not (phys_equal e special_error) then prerr_endline (Error.to_string_hum e);
+    if not (phys_equal e special_error) then Stdlib.prerr_endline (Error.to_string_hum e);
     `Error
 ;;
 
@@ -314,7 +274,7 @@ module For_test = struct
         report_and_return_status ?config f)
     with
     | `Ok -> ()
-    | `Error -> prerr_endline "[1]"
+    | `Error -> Stdlib.prerr_endline "[1]"
     | `Raised (e, raw_backtrace) -> Stdlib.Printexc.raise_with_backtrace e raw_backtrace
   ;;
 

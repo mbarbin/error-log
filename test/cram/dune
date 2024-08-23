@@ -9,8 +9,10 @@
   -open
   Base
   -open
-  Commandlang)
- (libraries base commandlang commandlang-to-cmdliner error-log loc)
+  Commandlang
+  -open
+  Loc0)
+ (libraries base commandlang commandlang-to-cmdliner error-log loc0)
  (instrumentation
   (backend bisect_ppx))
  (lint

@@ -15,8 +15,10 @@
   -open
   Base
   -open
-  Stdio)
- (libraries base commandlang core.command loc pp pp-extended stdio stdune)
+  Loc0
+  -open
+  Commandlang)
+ (libraries base commandlang loc0 pp pp-extended stdune)
  (preprocess
   (pps
    -unused-code-warnings=force

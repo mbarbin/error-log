@@ -30,13 +30,9 @@
     :dev
     (>= 2.8.3)))
   (commandlang
-   (>= 0.0.1))
-  (core
-   (and
-    (>= v0.17)
-    (< v0.18)))
-  (loc
    (>= 0.0.2))
+  (loc0
+   (>= 0.1.0))
   (pp
    (>= 1.2.0))
   (pp-extended
@@ -76,16 +72,12 @@
     (< v0.18)))
   (ppxlib
    (>= 0.33))
-  (stdio
-   (and
-    (>= v0.17)
-    (< v0.18)))
   (stdune
    (>= 3.16))))
 
 (package
- (name error-log-test)
- (synopsis "Test package for error-log")
+ (name error-log-tests)
+ (synopsis "Tests for error-log")
  (depends
   (ocaml
    (>= 5.2))
@@ -100,21 +92,21 @@
   (cmdliner
    (= 1.3.0))
   (commandlang
-   (>= 0.0.1))
-  (commandlang-err
-   (>= 0.0.1))
+   (>= 0.0.2))
   (commandlang-to-cmdliner
-   (>= 0.0.1))
+   (>= 0.0.2))
   (core
    (and
     (>= v0.17)
     (< v0.18)))
-  (expect-test-helpers
+  (err0
+   (>= 0.0.2))
+  (expect_test_helpers_core
    (and
     (>= v0.17)
     (< v0.18)))
-  (loc
-   (>= 0.0.2))
+  (loc0
+   (>= 0.1.0))
   (odoc
    (and
     :with-doc
