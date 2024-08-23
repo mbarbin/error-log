@@ -89,16 +89,11 @@ module Config : sig
   type t [@@deriving equal, sexp_of]
 
   val default : t
-  val arg : t Commandlang.Command.Arg.t
+  val arg : t Command.Arg.t
   val create : ?mode:Mode.t -> ?warn_error:bool -> unit -> t
 
   (** Returns the arguments to supply to the command line to create [t]. *)
   val to_args : t -> string list
-
-  (** [param] is kept for compatibility with older projects during a transition
-      period, however please note it will be removed in a future version of
-      [Error_log], in favor or [arg] only (commandlang). *)
-  val param : t Command.Param.t
 end
 
 val mode : t -> Config.Mode.t

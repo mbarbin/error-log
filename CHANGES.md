@@ -1,3 +1,20 @@
+## 0.0.9 (unreleased)
+
+### Added
+
+### Changed
+
+- Upgrade to recent versions of `err0` and `loc0`.
+- Reduce dependencies - remove `core` and `stdio`.
+- Split test package.
+- Use `Expect_test_helpers_base`.
+
+### Deprecated
+
+### Fixed
+
+### Removed
+
 ## 0.0.8 (2024-08-22)
 
 ### Added

@@ -12,9 +12,8 @@ depends: [
   "ocaml" {>= "5.2"}
   "base" {>= "v0.17" & < "v0.18"}
   "bisect_ppx" {dev & >= "2.8.3"}
-  "commandlang" {>= "0.0.1"}
-  "core" {>= "v0.17" & < "v0.18"}
-  "loc" {>= "0.0.2"}
+  "commandlang" {>= "0.0.2"}
+  "loc0" {>= "0.1.0"}
   "pp" {>= "1.2.0"}
   "pp-extended" {>= "0.0.2"}
   "ppx_compare" {>= "v0.17" & < "v0.18"}
@@ -26,7 +25,6 @@ depends: [
   "ppx_sexp_conv" {>= "v0.17" & < "v0.18"}
   "ppx_sexp_value" {>= "v0.17" & < "v0.18"}
   "ppxlib" {>= "0.33"}
-  "stdio" {>= "v0.17" & < "v0.18"}
   "stdune" {>= "3.16"}
   "odoc" {with-doc}
 ]

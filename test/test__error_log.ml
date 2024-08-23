@@ -366,10 +366,44 @@ let%expect_test "config param" =
     and mode = Error_log.Config.Mode.all in
     Error_log.Config.create ~mode ~warn_error ()
   in
-  List.iter configs ~f:(fun t ->
-    let args = Error_log.Config.to_args t in
-    let t' = Command.Param.parse Error_log.Config.param args |> Or_error.ok_exn in
-    require_equal [%here] (module Error_log.Config) t t')
+  List.iter configs ~f:(fun config ->
+    let args = Error_log.Config.to_args config in
+    print_s [%sexp { config : Error_log.Config.t; args : string list }]);
+  [%expect
+    {|
+    ((config (
+       (mode       Quiet)
+       (warn_error false)))
+     (args (--quiet)))
+    ((config (
+       (mode       Default)
+       (warn_error false)))
+     (args ()))
+    ((config (
+       (mode       Verbose)
+       (warn_error false)))
+     (args (--verbose)))
+    ((config (
+       (mode       Debug)
+       (warn_error false)))
+     (args (--debug)))
+    ((config (
+       (mode       Quiet)
+       (warn_error true)))
+     (args (--quiet --warn-error)))
+    ((config (
+       (mode       Default)
+       (warn_error true)))
+     (args (--warn-error)))
+    ((config (
+       (mode       Verbose)
+       (warn_error true)))
+     (args (--verbose --warn-error)))
+    ((config (
+       (mode       Debug)
+       (warn_error true)))
+     (args (--debug --warn-error)))
+    |}]
 ;;
 
 let%expect_test "dump the log" =
