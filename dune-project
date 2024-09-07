@@ -25,14 +25,12 @@
    (and
     (>= v0.17)
     (< v0.18)))
-  (bisect_ppx
-   (and
-    :dev
-    (>= 2.8.3)))
-  (commandlang
-   (>= 0.0.2))
-  (loc0
-   (>= 0.1.0))
+  (cmdlang
+   (>= 0.0.4))
+  (err
+   (>= 0.0.4))
+  (loc
+   (>= 0.2.0))
   (pp
    (>= 1.2.0))
   (pp-extended
@@ -51,11 +49,6 @@
     (< v0.18)))
   (ppx_here
    (and
-    (>= v0.17)
-    (< v0.18)))
-  (ppx_js_style
-   (and
-    :dev
     (>= v0.17)
     (< v0.18)))
   (ppx_let
@@ -81,36 +74,36 @@
  (depends
   (ocaml
    (>= 5.2))
+  (ocamlformat
+   (and
+    :with-dev-setup
+    (= 0.26.2)))
   (base
    (and
     (>= v0.17)
     (< v0.18)))
   (bisect_ppx
    (and
-    :dev
+    :with-dev-setup
     (>= 2.8.3)))
+  (cmdlang
+   (>= 0.0.4))
+  (cmdlang-to-cmdliner
+   (>= 0.0.4))
   (cmdliner
    (= 1.3.0))
-  (commandlang
-   (>= 0.0.2))
-  (commandlang-to-cmdliner
-   (>= 0.0.2))
   (core
    (and
     (>= v0.17)
     (< v0.18)))
-  (err0
-   (>= 0.0.2))
+  (err
+   (>= 0.0.4))
   (expect_test_helpers_core
    (and
     (>= v0.17)
     (< v0.18)))
-  (loc0
-   (>= 0.1.0))
-  (odoc
-   (and
-    :with-doc
-    (>= 2.4.2)))
+  (loc
+   (>= 0.2.0))
   (pp
    (>= 1.2.0))
   (pp-extended
@@ -137,7 +130,7 @@
     (< v0.18)))
   (ppx_js_style
    (and
-    :dev
+    :with-dev-setup
     (>= v0.17)
     (< v0.18)))
   (ppx_let
@@ -154,13 +147,17 @@
     (< v0.18)))
   (ppxlib
    (>= 0.33))
-  (sherlodoc
-   (and
-    :with-doc
-    (>= 0.2)))
   (stdio
    (and
     (>= v0.17)
     (< v0.18)))
   (stdune
-   (>= 3.16))))
+   (>= 3.16))
+  (odoc
+   (and
+    :with-doc
+    (>= 2.4.2)))
+  (sherlodoc
+   (and
+    :with-doc
+    (>= 0.2)))))

@@ -9,10 +9,8 @@
   -open
   Base
   -open
-  Commandlang
-  -open
-  Loc0)
- (libraries base commandlang commandlang-to-cmdliner error-log loc0)
+  Cmdlang)
+ (libraries base cmdlang cmdlang-to-cmdliner error-log loc)
  (instrumentation
   (backend bisect_ppx))
  (lint
@@ -29,4 +27,5 @@
    ppx_sexp_value)))
 
 (cram
+ (package error-log-tests)
  (deps main.exe))
