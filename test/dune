@@ -10,14 +10,12 @@
   -open
   Base
   -open
-  Loc0
-  -open
   Expect_test_helpers_base)
  (libraries
   base
   error_log
   expect_test_helpers_core.expect_test_helpers_base
-  loc0)
+  loc)
  (inline_tests)
  (instrumentation
   (backend bisect_ppx))

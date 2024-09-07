@@ -18,11 +18,17 @@ module Config = struct
     let switch = "warn-error"
   end
 
-  type t =
-    { mode : Mode.t
-    ; warn_error : Warn_error.t
-    }
-  [@@deriving equal, sexp_of]
+  module T = struct
+    [@@@coverage off]
+
+    type t =
+      { mode : Mode.t
+      ; warn_error : Warn_error.t
+      }
+    [@@deriving equal, sexp_of]
+  end
+
+  include T
 
   let default = { mode = Default; warn_error = false }
 
@@ -158,21 +164,30 @@ let reraise e = raise (E e)
 let create ~config = { config; messages = Queue.create () }
 let did_you_mean = Stdune.User_message.did_you_mean
 
+let stdune_loc (loc : Loc.t) =
+  let { Loc.Lexbuf_loc.start; stop } = Loc.to_lexbuf_loc loc in
+  Stdune.Loc.of_lexbuf_loc { start; stop }
+;;
+
 let raise t ?loc ?hints paragraphs =
-  let message = Stdune.User_error.make ?loc ?hints paragraphs in
+  let message =
+    Stdune.User_error.make ?loc:(Option.map loc ~f:stdune_loc) ?hints paragraphs
+  in
   Queue.enqueue t.messages { kind = Error; message; flushed = false };
   reraise T
 ;;
 
 let error t ?loc ?hints paragraphs =
-  let message = Stdune.User_error.make ?loc ?hints paragraphs in
+  let message =
+    Stdune.User_error.make ?loc:(Option.map loc ~f:stdune_loc) ?hints paragraphs
+  in
   Queue.enqueue t.messages { kind = Error; message; flushed = false }
 ;;
 
 let warning t ?loc ?hints paragraphs =
   let message =
     Stdune.User_message.make
-      ?loc
+      ?loc:(Option.map loc ~f:stdune_loc)
       ?hints
       ~prefix:
         (Pp.seq
@@ -186,7 +201,7 @@ let warning t ?loc ?hints paragraphs =
 let info t ?loc ?hints paragraphs =
   let message =
     Stdune.User_message.make
-      ?loc
+      ?loc:(Option.map loc ~f:stdune_loc)
       ?hints
       ~prefix:
         (Pp.seq (Pp.tag Stdune.User_message.Style.Kwd (Pp.verbatim "Info")) (Pp.char ':'))
@@ -198,7 +213,7 @@ let info t ?loc ?hints paragraphs =
 let debug t ?loc ?hints paragraphs =
   let message =
     Stdune.User_message.make
-      ?loc
+      ?loc:(Option.map loc ~f:stdune_loc)
       ?hints
       ~prefix:
         (Pp.seq

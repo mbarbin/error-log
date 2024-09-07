@@ -66,8 +66,19 @@ let%expect_test "uncaught exception" =
 
 let path = Fpath.(v "my-file.ext")
 
+let file_contents =
+  {|
+Hello
+This is the contents
+Of the file 'my-file.ext'
+We use it for tests here.
+|}
+;;
+
+let file_cache = Loc.File_cache.create ~path ~file_contents
+
 let%expect_test "raise" =
-  let loc = Loc.in_file_at_line ~path ~line:3 in
+  let loc = Loc.in_file_line ~file_cache ~line:3 in
   Error_log.For_test.report (fun error_log ->
     Error_log.raise
       error_log
@@ -80,21 +91,22 @@ let%expect_test "raise" =
          :: Error_log.did_you_mean "vra" ~candidates:[ "var"; "hello"; "world" ]));
   [%expect
     {|
-    File "my-file.ext", line 3, characters 0-0:
+    File "my-file.ext", line 3, characters 0-20:
     Error: This is an error with some error message.
     Unbound value 'vra'
     Hint: And some hints too
     Hint: did you mean var?
-    [1] |}];
+    [1]
+    |}];
   ()
 ;;
 
 let%expect_test "error" =
-  let loc = Loc.in_file_at_line ~path ~line:3 in
+  let loc = Loc.in_file_line ~file_cache ~line:3 in
   Error_log.For_test.report (fun error_log ->
     Error_log.error
       error_log
-      ~loc:(Loc.in_file_at_line ~path ~line:1)
+      ~loc:(Loc.in_file_line ~file_cache ~line:1)
       [ Pp.textf
           "Error log allows you to report several errors if you want to, rather than \
            stopping the execution at the first one."
@@ -114,17 +126,18 @@ let%expect_test "error" =
     File "my-file.ext", line 1, characters 0-0:
     Error: Error log allows you to report several errors if you want to, rather
     than stopping the execution at the first one.
-    File "my-file.ext", line 3, characters 0-0:
+    File "my-file.ext", line 3, characters 0-20:
     Error: This is an error with some error message.
     Unbound value 'vra'
     Hint: And some hints too
     Hint: did you mean var?
-    [1] |}];
+    [1]
+    |}];
   ()
 ;;
 
 let%expect_test "warning" =
-  let loc = Loc.in_file_at_line ~path ~line:3 in
+  let loc = Loc.in_file_line ~file_cache ~line:3 in
   let config = Error_log.Config.create () in
   Error_log.For_test.report ~config (fun error_log ->
     Error_log.warning
@@ -139,29 +152,32 @@ let%expect_test "warning" =
     return ());
   [%expect
     {|
-    File "my-file.ext", line 3, characters 0-0:
+    File "my-file.ext", line 3, characters 0-20:
     Warning: This is an warning with some warning message.
     Unbound value 'vra'
     Hint: And some hints too
-    Hint: did you mean var? |}];
+    Hint: did you mean var?
+    |}];
   ()
 ;;
 
 let%expect_test "warn-error" =
-  let loc = Loc.in_file_at_line ~path ~line:3 in
+  let loc = Loc.in_file_line ~file_cache ~line:3 in
   let config = Error_log.Config.create ~warn_error:true () in
   Error_log.For_test.report ~config (fun error_log ->
     Error_log.warning error_log ~loc [ Pp.textf "Hi" ];
     return ());
-  [%expect {|
-    File "my-file.ext", line 3, characters 0-0:
+  [%expect
+    {|
+    File "my-file.ext", line 3, characters 0-20:
     Warning: Hi
-    [1] |}];
+    [1]
+    |}];
   ()
 ;;
 
 let%expect_test "warning when quiet" =
-  let loc = Loc.in_file_at_line ~path ~line:3 in
+  let loc = Loc.in_file_line ~file_cache ~line:3 in
   let config = Error_log.Config.create ~mode:Quiet () in
   Error_log.For_test.report ~config (fun error_log ->
     Error_log.warning error_log ~loc [ Pp.textf "Hi" ];
@@ -171,20 +187,22 @@ let%expect_test "warning when quiet" =
 ;;
 
 let%expect_test "warn-error when quiet" =
-  let loc = Loc.in_file_at_line ~path ~line:3 in
+  let loc = Loc.in_file_line ~file_cache ~line:3 in
   let config = Error_log.Config.create ~mode:Quiet ~warn_error:true () in
   Error_log.For_test.report ~config (fun error_log ->
     Error_log.warning error_log ~loc [ Pp.textf "Hi" ];
     return ());
-  [%expect {|
-    File "my-file.ext", line 3, characters 0-0:
+  [%expect
+    {|
+    File "my-file.ext", line 3, characters 0-20:
     Warning: Hi
-    [1] |}];
+    [1]
+    |}];
   ()
 ;;
 
 let%expect_test "info & debug" =
-  let loc = Loc.in_file_at_line ~path ~line:3 in
+  let loc = Loc.in_file_line ~file_cache ~line:3 in
   let config = Error_log.Config.create () in
   Error_log.For_test.report ~config (fun error_log ->
     Error_log.info error_log ~loc [ Pp.textf "Hi" ];
@@ -195,20 +213,21 @@ let%expect_test "info & debug" =
 ;;
 
 let%expect_test "info & debug when verbose" =
-  let loc = Loc.in_file_at_line ~path ~line:3 in
+  let loc = Loc.in_file_line ~file_cache ~line:3 in
   let config = Error_log.Config.create ~mode:Verbose () in
   Error_log.For_test.report ~config (fun error_log ->
     Error_log.info error_log ~loc [ Pp.textf "Hi" ];
     Error_log.debug error_log ~loc [ Pp.textf "Debug!!" ];
     return ());
   [%expect {|
-    File "my-file.ext", line 3, characters 0-0:
-    Info: Hi |}];
+    File "my-file.ext", line 3, characters 0-20:
+    Info: Hi
+    |}];
   ()
 ;;
 
 let%expect_test "info & debug when debug" =
-  let loc = Loc.in_file_at_line ~path ~line:3 in
+  let loc = Loc.in_file_line ~file_cache ~line:3 in
   let config = Error_log.Config.create ~mode:Debug () in
   Error_log.For_test.report ~config (fun error_log ->
     Error_log.info error_log ~loc [ Pp.textf "Hi" ];
@@ -216,15 +235,16 @@ let%expect_test "info & debug when debug" =
     return ());
   [%expect
     {|
-    File "my-file.ext", line 3, characters 0-0:
+    File "my-file.ext", line 3, characters 0-20:
     Info: Hi
-    File "my-file.ext", line 3, characters 0-0:
-    Debug: Debug!! |}];
+    File "my-file.ext", line 3, characters 0-20:
+    Debug: Debug!!
+    |}];
   ()
 ;;
 
 let%expect_test "protect" =
-  let loc = Loc.in_file_at_line ~path ~line:3 in
+  let loc = Loc.in_file_line ~file_cache ~line:3 in
   Error_log.For_test.report (fun error_log ->
     (match Error_log.protect error_log ~f:(fun () -> ()) with
      | Ok () -> ()
@@ -241,15 +261,16 @@ let%expect_test "protect" =
     return ());
   [%expect
     {|
-    File "my-file.ext", line 3, characters 0-0:
+    File "my-file.ext", line 3, characters 0-20:
     Error: Error 1
-    File "my-file.ext", line 3, characters 0-0:
+    File "my-file.ext", line 3, characters 0-20:
     Error: Error 2
-    File "my-file.ext", line 3, characters 0-0:
+    File "my-file.ext", line 3, characters 0-20:
     Error: Error 3
-    File "my-file.ext", line 3, characters 0-0:
+    File "my-file.ext", line 3, characters 0-20:
     Error: Error 4
-    [1] |}];
+    [1]
+    |}];
   ()
 ;;
 
@@ -269,7 +290,7 @@ let%expect_test "protect raised" =
 (* As long as [Error_log.raise] was executed, the exit code will be that of a
    failing command, even if the exception is caught to run some extra logic. *)
 let%expect_test "recovering from error" =
-  let loc = Loc.in_file_at_line ~path ~line:3 in
+  let loc = Loc.in_file_line ~file_cache ~line:3 in
   Error_log.For_test.report (fun error_log ->
     (match Error_log.raise error_log ~loc [ Pp.textf "Fatal error" ] with
      | () -> assert false
@@ -279,14 +300,15 @@ let%expect_test "recovering from error" =
   [%expect
     {|
     Fatal error was caught, running some extra logic.
-    File "my-file.ext", line 3, characters 0-0:
+    File "my-file.ext", line 3, characters 0-20:
     Error: Fatal error
-    [1] |}];
+    [1]
+    |}];
   ()
 ;;
 
 let%expect_test "recover and reraise" =
-  let loc = Loc.in_file_at_line ~path ~line:3 in
+  let loc = Loc.in_file_line ~file_cache ~line:3 in
   Error_log.For_test.report (fun error_log ->
     match Error_log.raise error_log ~loc [ Pp.textf "Fatal error" ] with
     | () -> assert false
@@ -296,14 +318,15 @@ let%expect_test "recover and reraise" =
   [%expect
     {|
     Fatal error was caught, running some extra logic.
-    File "my-file.ext", line 3, characters 0-0:
+    File "my-file.ext", line 3, characters 0-20:
     Error: Fatal error
-    [1] |}];
+    [1]
+    |}];
   ()
 ;;
 
 let%expect_test "checkpoint" =
-  let loc = Loc.in_file_at_line ~path ~line:3 in
+  let loc = Loc.in_file_line ~file_cache ~line:3 in
   Error_log.For_test.report (fun error_log ->
     let%bind () = Error_log.checkpoint error_log in
     Error_log.error error_log ~loc [ Pp.text "Error 1" ];
@@ -313,14 +336,15 @@ let%expect_test "checkpoint" =
     | Error _ as err -> err);
   [%expect
     {|
-    File "my-file.ext", line 3, characters 0-0:
+    File "my-file.ext", line 3, characters 0-20:
     Error: Error 1
-    [1] |}];
+    [1]
+    |}];
   ()
 ;;
 
 let%expect_test "checkpoint_exn" =
-  let loc = Loc.in_file_at_line ~path ~line:3 in
+  let loc = Loc.in_file_line ~file_cache ~line:3 in
   let config = Error_log.Config.create ~warn_error:true () in
   Error_log.For_test.report ~config (fun error_log ->
     Error_log.checkpoint_exn error_log;
@@ -329,14 +353,15 @@ let%expect_test "checkpoint_exn" =
     | () -> assert false);
   [%expect
     {|
-    File "my-file.ext", line 3, characters 0-0:
+    File "my-file.ext", line 3, characters 0-20:
     Warning: Warning 1
-    [1] |}];
+    [1]
+    |}];
   ()
 ;;
 
 let%expect_test "flush" =
-  let loc = Loc.in_file_at_line ~path ~line:3 in
+  let loc = Loc.in_file_line ~file_cache ~line:3 in
   Error_log.For_test.report (fun error_log ->
     Error_log.error error_log ~loc [ Pp.text "Error 1" ];
     [%expect {||}];
@@ -345,18 +370,20 @@ let%expect_test "flush" =
     Error_log.flush error_log;
     [%expect
       {|
-      File "my-file.ext", line 3, characters 0-0:
+      File "my-file.ext", line 3, characters 0-20:
       Error: Error 1
-      File "my-file.ext", line 3, characters 0-0:
-      Error: Error 2 |}];
+      File "my-file.ext", line 3, characters 0-20:
+      Error: Error 2
+      |}];
     Error_log.error error_log ~loc [ Pp.text "Error 3" ];
     [%expect {||}];
     return ());
   [%expect
     {|
-    File "my-file.ext", line 3, characters 0-0:
+    File "my-file.ext", line 3, characters 0-20:
     Error: Error 3
-    [1] |}];
+    [1]
+    |}];
   ()
 ;;
 
@@ -407,7 +434,7 @@ let%expect_test "config param" =
 ;;
 
 let%expect_test "dump the log" =
-  let loc = Loc.in_file_at_line ~path ~line:3 in
+  let loc = Loc.in_file_line ~file_cache ~line:3 in
   Error_log.For_test.report (fun error_log ->
     Error_log.error error_log ~loc [ Pp.text "E" ];
     print_s [%sexp (error_log : Error_log.t)];
@@ -433,10 +460,11 @@ let%expect_test "dump the log" =
     Error_log.flush error_log;
     [%expect
       {|
-      File "my-file.ext", line 3, characters 0-0:
+      File "my-file.ext", line 3, characters 0-20:
       Error: E
-      File "my-file.ext", line 3, characters 0-0:
-      Warning: W |}];
+      File "my-file.ext", line 3, characters 0-20:
+      Warning: W
+      |}];
     Error_log.info error_log ~loc [ Pp.text "I" ];
     Error_log.debug error_log ~loc [ Pp.text "D" ];
     print_s [%sexp (error_log : Error_log.t)];

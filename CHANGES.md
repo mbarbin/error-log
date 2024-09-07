@@ -1,10 +1,10 @@
-## 0.0.9 (unreleased)
+## 0.0.9 (2024-09-07)
 
 ### Added
 
 ### Changed
 
-- Upgrade to recent versions of `err0` and `loc0`.
+- Upgrade to recent versions of `err` and `loc`.
 - Reduce dependencies - remove `core` and `stdio`.
 - Split test package.
 - Use `Expect_test_helpers_base`.
@@ -19,7 +19,7 @@
 
 ### Added
 
-- Added compatibility with `commandlang` & direct style error handling.
+- Added compatibility with `cmdlang` & direct style error handling.
 
 ### Changed
 
