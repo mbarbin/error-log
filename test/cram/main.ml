@@ -32,4 +32,4 @@ let main =
   Command.group ~summary:"test error-log from the command line" [ "write", write_cmd ]
 ;;
 
-let () = Cmdlang_to_cmdliner.run main ~name:"main" ~version:"%%VERSION%%"
+let () = Cmdlang_cmdliner_runner.run main ~name:"main" ~version:"%%VERSION%%"

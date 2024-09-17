@@ -10,7 +10,7 @@
   Base
   -open
   Cmdlang)
- (libraries base cmdlang cmdlang-to-cmdliner error-log loc)
+ (libraries base cmdlang cmdlang-cmdliner-runner error-log loc)
  (instrumentation
   (backend bisect_ppx))
  (lint

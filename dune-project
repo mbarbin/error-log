@@ -26,9 +26,9 @@
     (>= v0.17)
     (< v0.18)))
   (cmdlang
-   (>= 0.0.4))
+   (>= 0.0.5))
   (err
-   (>= 0.0.4))
+   (>= 0.0.5))
   (loc
    (>= 0.2.0))
   (pp
@@ -87,9 +87,11 @@
     :with-dev-setup
     (>= 2.8.3)))
   (cmdlang
-   (>= 0.0.4))
+   (>= 0.0.5))
+  (cmdlang-cmdliner-runner
+   (>= 0.0.5))
   (cmdlang-to-cmdliner
-   (>= 0.0.4))
+   (>= 0.0.5))
   (cmdliner
    (= 1.3.0))
   (core
@@ -97,7 +99,7 @@
     (>= v0.17)
     (< v0.18)))
   (err
-   (>= 0.0.4))
+   (>= 0.0.5))
   (expect_test_helpers_core
    (and
     (>= v0.17)
