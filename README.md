@@ -3,8 +3,7 @@
 [![CI Status](https://github.com/mbarbin/error-log/workflows/ci/badge.svg)](https://github.com/mbarbin/error-log/actions/workflows/ci.yml)
 [![Coverage Status](https://coveralls.io/repos/github/mbarbin/error-log/badge.svg?branch=main)](https://coveralls.io/github/mbarbin/error-log?branch=main)
 
-`Error_log` is a library for programs that process user programs and report
-located errors and warnings (compilers, interpreters, etc.)
+`Error_log` is a library for programs that process user programs and report located errors and warnings (compilers, interpreters, etc.)
 
 The canonical syntax for an error produced by this lib is:
 
@@ -17,10 +16,8 @@ Followed by more details, perhaps some sexps, etc.
    (extra_values)))
 ```
 
-It is inspired by dune's user_messages and uses dune's error message rendering
-under the hood.
+It is inspired by dune's user_messages and uses dune's error message rendering under the hood.
 
 ## Code Documentation
 
-The code documentation of the latest release is built with `odoc` and published
-to `GitHub` pages [here](https://mbarbin.github.io/error-log).
+The code documentation of the latest release is built with `odoc` and published to `GitHub` pages [here](https://mbarbin.github.io/error-log).
