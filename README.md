@@ -20,7 +20,7 @@ Followed by more details, perhaps some sexps, etc.
 It is inspired by dune's user_messages and uses dune's error message rendering
 under the hood.
 
-## Code documentation
+## Code Documentation
 
 The code documentation of the latest release is built with `odoc` and published
 to `GitHub` pages [here](https://mbarbin.github.io/error-log).
