@@ -1,5 +1,3 @@
-open! Or_error.Let_syntax
-
 let%expect_test "return" =
   Error_log.For_test.report' (fun error_log -> ignore (error_log : Error_log.t));
   [%expect {||}];
@@ -9,7 +7,7 @@ let%expect_test "return" =
 let%expect_test "return Ok" =
   Error_log.For_test.report (fun error_log ->
     ignore (error_log : Error_log.t);
-    return ());
+    Or_error.return ());
   [%expect {||}];
   ()
 ;;
@@ -31,7 +29,7 @@ let%expect_test "default mode" =
     [%expect {| Default |}];
     print_s [%sexp (Error_log.is_debug_mode error_log : bool)];
     [%expect {| false |}];
-    return ());
+    Or_error.return ());
   [%expect {||}];
   ()
 ;;
@@ -43,7 +41,7 @@ let%expect_test "debug mode" =
     [%expect {| Debug |}];
     print_s [%sexp (Error_log.is_debug_mode error_log : bool)];
     [%expect {| true |}];
-    return ());
+    Or_error.return ());
   [%expect {||}];
   ()
 ;;
@@ -120,7 +118,7 @@ let%expect_test "error" =
       ~hints:
         (Pp.text "And some hints too"
          :: Error_log.did_you_mean "vra" ~candidates:[ "var"; "hello"; "world" ]);
-    return ());
+    Or_error.return ());
   [%expect
     {|
     File "my-file.ext", line 1, characters 0-0:
@@ -149,7 +147,7 @@ let%expect_test "warning" =
       ~hints:
         (Pp.text "And some hints too"
          :: Error_log.did_you_mean "vra" ~candidates:[ "var"; "hello"; "world" ]);
-    return ());
+    Or_error.return ());
   [%expect
     {|
     File "my-file.ext", line 3, characters 0-20:
@@ -166,7 +164,7 @@ let%expect_test "warn-error" =
   let config = Error_log.Config.create ~warn_error:true () in
   Error_log.For_test.report ~config (fun error_log ->
     Error_log.warning error_log ~loc [ Pp.textf "Hi" ];
-    return ());
+    Or_error.return ());
   [%expect
     {|
     File "my-file.ext", line 3, characters 0-20:
@@ -181,7 +179,7 @@ let%expect_test "warning when quiet" =
   let config = Error_log.Config.create ~mode:Quiet () in
   Error_log.For_test.report ~config (fun error_log ->
     Error_log.warning error_log ~loc [ Pp.textf "Hi" ];
-    return ());
+    Or_error.return ());
   [%expect {||}];
   ()
 ;;
@@ -191,7 +189,7 @@ let%expect_test "warn-error when quiet" =
   let config = Error_log.Config.create ~mode:Quiet ~warn_error:true () in
   Error_log.For_test.report ~config (fun error_log ->
     Error_log.warning error_log ~loc [ Pp.textf "Hi" ];
-    return ());
+    Or_error.return ());
   [%expect
     {|
     File "my-file.ext", line 3, characters 0-20:
@@ -207,7 +205,7 @@ let%expect_test "info & debug" =
   Error_log.For_test.report ~config (fun error_log ->
     Error_log.info error_log ~loc [ Pp.textf "Hi" ];
     Error_log.debug error_log ~loc [ Pp.textf "Debug!!" ];
-    return ());
+    Or_error.return ());
   [%expect {||}];
   ()
 ;;
@@ -218,7 +216,7 @@ let%expect_test "info & debug when verbose" =
   Error_log.For_test.report ~config (fun error_log ->
     Error_log.info error_log ~loc [ Pp.textf "Hi" ];
     Error_log.debug error_log ~loc [ Pp.textf "Debug!!" ];
-    return ());
+    Or_error.return ());
   [%expect {|
     File "my-file.ext", line 3, characters 0-20:
     Info: Hi
@@ -232,7 +230,7 @@ let%expect_test "info & debug when debug" =
   Error_log.For_test.report ~config (fun error_log ->
     Error_log.info error_log ~loc [ Pp.textf "Hi" ];
     Error_log.debug error_log ~loc [ Pp.textf "Debug!!" ];
-    return ());
+    Or_error.return ());
   [%expect
     {|
     File "my-file.ext", line 3, characters 0-20:
@@ -258,7 +256,7 @@ let%expect_test "protect" =
      | Ok () -> assert false
      | Error (_ : Error_log.Err.t) ->
        Error_log.error error_log ~loc [ Pp.textf "Error 4" ]);
-    return ());
+    Or_error.return ());
   [%expect
     {|
     File "my-file.ext", line 3, characters 0-20:
@@ -282,7 +280,7 @@ let%expect_test "protect raised" =
     | Ok () | Error (_ : Error_log.Err.t) -> assert false
     | exception e ->
       print_s [%sexp "Uncaught exception", (e : Exn.t)];
-      return ());
+      Or_error.return ());
   [%expect {| ("Uncaught exception" Exception) |}];
   ()
 ;;
@@ -296,7 +294,7 @@ let%expect_test "recovering from error" =
      | () -> assert false
      | exception Error_log.E (_ : Error_log.Err.t) ->
        print_endline "Fatal error was caught, running some extra logic.");
-    return ());
+    Or_error.return ());
   [%expect
     {|
     Fatal error was caught, running some extra logic.
@@ -328,7 +326,7 @@ let%expect_test "recover and reraise" =
 let%expect_test "checkpoint" =
   let loc = Loc.in_file_line ~file_cache ~line:3 in
   Error_log.For_test.report (fun error_log ->
-    let%bind () = Error_log.checkpoint error_log in
+    let%bind.Or_error () = Error_log.checkpoint error_log in
     Error_log.error error_log ~loc [ Pp.text "Error 1" ];
     [%expect {||}];
     match Error_log.checkpoint error_log with
@@ -377,7 +375,7 @@ let%expect_test "flush" =
       |}];
     Error_log.error error_log ~loc [ Pp.text "Error 3" ];
     [%expect {||}];
-    return ());
+    Or_error.return ());
   [%expect
     {|
     File "my-file.ext", line 3, characters 0-20:
@@ -478,7 +476,7 @@ let%expect_test "dump the log" =
          ((kind Warning) (message <opaque>) (flushed true))
          ((kind Info)    (message <opaque>) (flushed false))
          ((kind Debug)   (message <opaque>) (flushed false))))) |}];
-    return ());
+    Or_error.return ());
   [%expect {| [1] |}];
   ()
 ;;
@@ -492,7 +490,7 @@ let%expect_test "am_running_test" =
   Error_log.For_test.report (fun (_ : Error_log.t) ->
     am_running_test ();
     [%expect {| ((am_running_test true)) |}];
-    return ());
+    Or_error.return ());
   am_running_test ();
   [%expect {| ((am_running_test false)) |}];
   ()
