@@ -16,7 +16,7 @@
   Base
   -open
   Cmdlang)
- (libraries base cmdlang err loc pp pp-extended stdune)
+ (libraries base cmdlang pp-log.err loc pp pp-extended stdune)
  (preprocess
   (pps
    -unused-code-warnings=force
