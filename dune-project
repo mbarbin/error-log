@@ -27,14 +27,14 @@
     (< v0.18)))
   (cmdlang
    (>= 0.0.5))
-  (err
-   (>= 0.0.5))
   (loc
    (>= 0.2.0))
   (pp
    (>= 1.2.0))
   (pp-extended
    (>= 0.0.2))
+  (pp-log
+   (>= 0.0.1))
   (ppx_compare
    (and
     (>= v0.17)
@@ -98,8 +98,6 @@
    (and
     (>= v0.17)
     (< v0.18)))
-  (err
-   (>= 0.0.5))
   (expect_test_helpers_core
    (and
     (>= v0.17)
@@ -110,6 +108,8 @@
    (>= 1.2.0))
   (pp-extended
    (>= 0.0.2))
+  (pp-log
+   (>= 0.0.1))
   (ppx_compare
    (and
     (>= v0.17)
