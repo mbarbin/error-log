@@ -15,6 +15,8 @@
 
 (documentation "https://mbarbin.github.io/error-log/")
 
+(implicit_transitive_deps false)
+
 (package
  (name error-log)
  (synopsis "Reporting located errors and warnings")
