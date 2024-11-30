@@ -1,4 +1,4 @@
-(lang dune 3.16)
+(lang dune 3.17)
 
 (name error-log)
 
@@ -66,7 +66,7 @@
   (ppxlib
    (>= 0.33))
   (stdune
-   (>= 3.16))))
+   (>= 3.17))))
 
 (package
  (name error-log-tests)
@@ -156,7 +156,7 @@
     (>= v0.17)
     (< v0.18)))
   (stdune
-   (>= 3.16))
+   (>= 3.17))
   (odoc
    (and
     :with-doc
