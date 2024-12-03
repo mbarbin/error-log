@@ -16,7 +16,8 @@ let%expect_test "return Error" =
   Error_log.For_test.report (fun error_log ->
     ignore (error_log : Error_log.t);
     Or_error.error_s [%sexp "Error message"]);
-  [%expect {|
+  [%expect
+    {|
     "Error message"
     [1] |}];
   ()
@@ -49,7 +50,8 @@ let%expect_test "debug mode" =
 let%expect_test "dump config" =
   let config = Error_log.Config.create ~mode:Debug () in
   print_s [%sexp (config : Error_log.Config.t)];
-  [%expect {|
+  [%expect
+    {|
     ((mode       Debug)
      (warn_error false)) |}];
   ()
@@ -217,7 +219,8 @@ let%expect_test "info & debug when verbose" =
     Error_log.info error_log ~loc [ Pp.textf "Hi" ];
     Error_log.debug error_log ~loc [ Pp.textf "Debug!!" ];
     Or_error.return ());
-  [%expect {|
+  [%expect
+    {|
     File "my-file.ext", line 3, characters 0-20:
     Info: Hi
     |}];
