@@ -15,7 +15,9 @@
   base
   error_log
   expect_test_helpers_core.expect_test_helpers_base
-  loc)
+  fpath
+  loc
+  pp)
  (inline_tests)
  (instrumentation
   (backend bisect_ppx))
